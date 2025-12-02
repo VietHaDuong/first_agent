@@ -1,17 +1,25 @@
 import os
 import requests
-from dotenv import load_dotenv
+import tempfile
+import streamlit as st
 from langchain.tools import tool
 from langchain_tavily import TavilySearch
+from langchain_ollama import OllamaEmbeddings
+from langchain_core.tools import create_retriever_tool
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-
-load_dotenv()
-
+@tool
 def search_web(query: str) -> str:
     "Getting up-to-date information on the internet"
 
     print('running search web tool...')
-    os.environ['TAVILY_API_KEY'] = os.getenv('TAVILY_API_KEY')
+    if 'TAVILY_API_KEY' in st.secrets:
+        os.environ['TAVILY_API_KEY'] = st.secrets['TAVILY_API_KEY']
+    else:
+        st.error('Tavily api is not in st secret')
+        st.stop()
 
     engine = TavilySearch(max_results = 3, include_answer = True)
     try:
@@ -23,7 +31,7 @@ def search_web(query: str) -> str:
 @tool
 def get_weather(city: str) -> str:
     "Getting current weather information"
-    api_key = os.environ.get('OPENWEATHER_API_KEY')
+    api_key = st.secrets['OPENWEATHER_API_KEY']
     base_curr = 'https://api.openweathermap.org/data/2.5/weather'
     base_geo = 'http://api.openweathermap.org/geo/1.0/direct'
 
@@ -43,3 +51,24 @@ def get_weather(city: str) -> str:
     
     except Exception as e:
         return f'Error: {str(e)}'
+    
+def rag_pdf(upload_file, query: str):
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            tmp_file.write(upload_file.getvalue())
+            tmp_path = tmp_file.name
+        loader =PyPDFLoader(tmp_path)
+        doc = loader.load()
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 200)
+        text = text_splitter.split_documents(doc)
+        embed = OllamaEmbeddings(model='nomic-embed-text')
+        vector = FAISS.from_documents(documents=text, embedding=embed)
+        retriever = vector.as_retriever(search_kwargs={'k': 3})
+        rag_tool = create_retriever_tool(retriever, description=query, name='pdf_rag')
+        return rag_tool
+    except Exception as e:
+        return f'Error: {str(e)}'
+    finally:
+        if 'tmp_path' in locals() and os.path.exists(tmp_path):
+            os.unlink(tmp_path)
