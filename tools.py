@@ -4,7 +4,7 @@ import tempfile
 import streamlit as st
 from langchain.tools import tool
 from langchain_tavily import TavilySearch
-from langchain_ollama import OllamaEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.tools import create_retriever_tool
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
@@ -53,6 +53,7 @@ def get_weather(city: str) -> str:
         return f'Error: {str(e)}'
     
 def rag_pdf(upload_file, query: str):
+    os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
@@ -62,7 +63,7 @@ def rag_pdf(upload_file, query: str):
         doc = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 200)
         text = text_splitter.split_documents(doc)
-        embed = OllamaEmbeddings(model='nomic-embed-text')
+        embed = GoogleGenerativeAIEmbeddings(model='gemini-embedding-001')
         vector = FAISS.from_documents(documents=text, embedding=embed)
         retriever = vector.as_retriever(search_kwargs={'k': 3})
         rag_tool = create_retriever_tool(retriever, description=query, name='pdf_rag')
