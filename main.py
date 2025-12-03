@@ -4,15 +4,17 @@ import uuid
 import tempfile
 import streamlit as st
 from langchain_ollama import ChatOllama
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
-from subagents import search_query, weather_info
 from langchain.agents.middleware import SummarizationMiddleware
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.runnables import RunnableConfig
 from tools import rag_pdf, search_web, get_weather
 
+os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
+
 st.set_page_config(page_title="Just an agent", layout='wide')
-st.title('Simple Ollama Agent')
+st.title('Simple Agent using Googel Generative AI')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'Howdy! What can I help you today?'}]
@@ -29,8 +31,8 @@ def current_agent():
 
     if 'rag_tool' in st.session_state and st.session_state.rag_tool:
         toolbox.append(st.session_state.rag_tool)
-
-    llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
+    llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.5)
+    # llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
     agent = create_agent(
         model=llm,
         tools=toolbox,
@@ -68,7 +70,11 @@ if prompt := st.chat_input('Ask your research question...'):
                 response = agent.invoke({
                 'messages':[{'role': 'user',
                 'content': prompt}]}, config)
-                agent_response = response['messages'][-1].content
+                response = response['messages'][-1].content
+                if isinstance(response, list):
+                    agent_response = "".join([item['text'] for item in response if item['type'] == 'text'])
+                else:
+                    agent_response = response
                 st.markdown(agent_response)
 
             except Exception as e:
