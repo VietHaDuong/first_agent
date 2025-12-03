@@ -14,7 +14,7 @@ from tools import rag_pdf, search_web, get_weather
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
 
 st.set_page_config(page_title="Just an agent", layout='wide')
-st.title('Simple Agent using Googel Generative AI')
+st.title('Simple AI Agent')
 
 if 'messages' not in st.session_state:
     st.session_state.messages = [{'role': 'assistant', 'content': 'Howdy! What can I help you today?'}]
