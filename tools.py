@@ -12,7 +12,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 @tool
 def search_web(query: str) -> str:
-    "Getting up-to-date information on the internet"
+    """Use this tool to search the internet for current events, real-time data, 
+    and up-to-date news. Useful for any query involving dates after 2024 
+    or verified facts. Input should be a targeted search query.
+    
+    Arg:
+        query: input from user to search for information (e.g. How old is Taylor Swift?)"""
 
     print('running search web tool...')
     if 'TAVILY_API_KEY' in st.secrets:
@@ -30,7 +35,12 @@ def search_web(query: str) -> str:
     
 @tool
 def get_weather(city: str) -> str:
-    "Getting current weather information"
+    """    
+    Use this when user wants to get the weather information of a city
+
+    Arg:
+        query: The full natural language request regarding weather (e.g., "What is the weather in Tokyo?")."""
+    
     api_key = st.secrets['OPENWEATHER_API_KEY']
     base_curr = 'https://api.openweathermap.org/data/2.5/weather'
     base_geo = 'http://api.openweathermap.org/geo/1.0/direct'
@@ -53,6 +63,11 @@ def get_weather(city: str) -> str:
         return f'Error: {str(e)}'
     
 def rag_pdf(upload_file, query: str):
+    """
+    ONLY use this tool when the user asks about the 'uploaded file', 'the PDF', 
+    'the context', or 'this document'. 
+    Do NOT use this for general world knowledge or news.
+    """
     os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
     tmp_path = None
     try:

@@ -3,6 +3,7 @@ import os
 import uuid
 import yaml
 import streamlit as st
+from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
