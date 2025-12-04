@@ -7,6 +7,7 @@ This project represents my first attempt at building an autonomous AI agent. Unl
 * **Document QA:** Retrieval Augmented Generation for PDF files.
 * **Live Weather:** Real-time meteorological data (via OpenWeather).
 
-## 🔮 Future Improvements
+## Future Improvements
 * Implement a "Reasoning Loop" (Chain of Thought) visualization.
+
 * Add support for CSV and Excel files.
