@@ -1,0 +1,9 @@
+langchain
+langchain-google-genai
+langchain-core
+streamlit
+langchain-tavily
+langchain-community
+langchain-text-splitters
+requests
+pyyaml

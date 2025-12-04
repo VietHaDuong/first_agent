@@ -1,9 +1,8 @@
 
 import os
 import uuid
-import tempfile
+import yaml
 import streamlit as st
-from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
@@ -12,6 +11,13 @@ from langchain_core.runnables import RunnableConfig
 from tools import rag_pdf, search_web, get_weather
 
 os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
+
+def load_config():
+    with open('prompt.yaml', 'r') as file:
+        return yaml.safe_load(file)
+    
+config = load_config()
+sys_prompt = config['agent_system']
 
 st.set_page_config(page_title="Just an agent", layout='wide')
 st.title('Simple AI Agent')
@@ -39,7 +45,8 @@ def current_agent():
         middleware=[SummarizationMiddleware(
             model=llm, max_tokens_before_summary=2000, messages_to_keep=5
         )],
-        checkpointer=InMemorySaver()
+        checkpointer=InMemorySaver(),
+        system_prompt=sys_prompt
     )
 
     return agent
