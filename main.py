@@ -3,7 +3,6 @@ import os
 import uuid
 import yaml
 import streamlit as st
-from langchain_ollama import ChatOllama
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
@@ -57,9 +56,14 @@ upload_file = st.file_uploader('Upload your pdf here', type='pdf', accept_multip
 if upload_file and st.button('Process PDF'):
     with st.spinner('Processing...'):
         tool_desc = f'Use this tool to answer question about uploaded file: {upload_file.name}'
-        new_tool = rag_pdf(upload_file, query=tool_desc)
-        st.session_state.rag_tool = new_tool
-        st.success(f'{upload_file.name} uploaded successfully!')
+        try:
+            new_tool = rag_pdf(upload_file, query=tool_desc)
+            st.session_state.rag_tool = new_tool
+            st.success(f'{upload_file.name} uploaded successfully!')
+        except Exception as e:
+            if not st.session_state.rag_tool:
+                st.session_state.rag_tool = None
+            st.error(f'Failed to process {upload_file.name}: {e}')
 
 agent = current_agent()
 
@@ -80,7 +84,7 @@ if prompt := st.chat_input('Ask your research question...'):
                 'content': prompt}]}, config)
                 response = response['messages'][-1].content
                 if isinstance(response, list):
-                    agent_response = "".join([item['text'] for item in response if item['type'] == 'text'])
+                    agent_response = "".join([item['text'] for item in response if isinstance(item, dict) and item.get('type') == 'text' and 'text' in item])
                 else:
                     agent_response = response
                 st.markdown(agent_response)

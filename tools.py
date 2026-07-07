@@ -83,8 +83,9 @@ def rag_pdf(upload_file, query: str):
         retriever = vector.as_retriever(search_kwargs={'k': 3})
         rag_tool = create_retriever_tool(retriever, description=query, name='pdf_rag')
         return rag_tool
-    except Exception as e:
-        return f'Error: {str(e)}'
     finally:
-        if 'tmp_path' in locals() and os.path.exists(tmp_path):
-            os.unlink(tmp_path)
+        if tmp_path is not None and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass

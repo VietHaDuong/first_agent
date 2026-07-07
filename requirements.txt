@@ -5,5 +5,8 @@ streamlit
 langchain-tavily
 langchain-community
 langchain-text-splitters
+langgraph
+pypdf
+faiss-cpu
 requests
 pyyaml
