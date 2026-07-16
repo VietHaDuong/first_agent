@@ -61,14 +61,14 @@ def get_weather(query: str) -> str:
     
     except Exception as e:
         return f'Error: {str(e)}'
-    
-def rag_pdf(upload_file, query: str):
+
+def rag_pdf(upload_file):
     """
     ONLY use this tool when the user asks about the 'uploaded file', 'the PDF', 
     'the context', or 'this document'. 
     Do NOT use this for general world knowledge or news.
     """
-    os.environ["GROQE_API_KEY"] = st.secrets['GROQ_API_KEY']
+    os.environ["HF_API_KEY"] = st.secrets['HF_API_KEY']
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
@@ -81,7 +81,7 @@ def rag_pdf(upload_file, query: str):
         embed = HuggingFaceEmbeddings(model='BAAI/bge-small-en-v1.5', encode_kwargs={'normalize_embeddings': True},)
         vector = FAISS.from_documents(documents=text, embedding=embed)
         retriever = vector.as_retriever(search_kwargs={'k': 3})
-        rag_tool = create_retriever_tool(retriever, description=query, name='pdf_rag')
+        rag_tool = create_retriever_tool(retriever, description="Search the uploaded PDF for relevant information", name='rag_pdf')
         return rag_tool
     finally:
         if tmp_path is not None and os.path.exists(tmp_path):
