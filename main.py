@@ -3,14 +3,14 @@ import os
 import uuid
 import yaml
 import streamlit as st
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.runnables import RunnableConfig
 from tools import rag_pdf, search_web, get_weather
 
-os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
+os.environ["GROQ_API_KEY"] = st.secrets['GROQ_API_KEY']
 
 def load_config():
     with open('prompt.yaml', 'r') as file:
@@ -37,7 +37,7 @@ def current_agent():
 
     if 'rag_tool' in st.session_state and st.session_state.rag_tool:
         toolbox.append(st.session_state.rag_tool)
-    llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', temperature=0.5)
+    llm = ChatGroq(model='llama-3.1-8b-instant', temperature=0.5)
     # llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
     agent = create_agent(
         model=llm,
