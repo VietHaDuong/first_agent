@@ -1,6 +1,7 @@
 langchain
 langchain-google-genai
 langchain-groq
+langchain-huggingface
 langchain-core
 streamlit
 langchain-tavily

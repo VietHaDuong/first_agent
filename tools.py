@@ -4,7 +4,7 @@ import tempfile
 import streamlit as st
 from langchain.tools import tool
 from langchain_tavily import TavilySearch
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.tools import create_retriever_tool
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
@@ -34,9 +34,9 @@ def search_web(query: str) -> str:
         return f'Error: {str(e)}'
     
 @tool
-def get_weather(city: str) -> str:
+def get_weather(query: str) -> str:
     """    
-    Use this when user wants to get the weather information of a city
+    Use this when user wants to get the weather information of a place
 
     Arg:
         query: The full natural language request regarding weather (e.g., "What is the weather in Tokyo?")."""
@@ -47,7 +47,7 @@ def get_weather(city: str) -> str:
 
     print('running weather tool...')
     try:
-        geo_p = {'q': city, 'appid': api_key, 'limit': 1}
+        geo_p = {'q': query, 'appid': api_key, 'limit': 1}
         geo = requests.get(base_geo, geo_p).json()
 
         lat = geo[0]['lat']
@@ -68,7 +68,7 @@ def rag_pdf(upload_file, query: str):
     'the context', or 'this document'. 
     Do NOT use this for general world knowledge or news.
     """
-    os.environ["GOOGLE_API_KEY"] = st.secrets['GOOGLE_API_KEY']
+    os.environ["GROQE_API_KEY"] = st.secrets['GROQ_API_KEY']
     tmp_path = None
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
@@ -78,7 +78,7 @@ def rag_pdf(upload_file, query: str):
         doc = loader.load()
         text_splitter = RecursiveCharacterTextSplitter(chunk_size = 1000, chunk_overlap = 200)
         text = text_splitter.split_documents(doc)
-        embed = GoogleGenerativeAIEmbeddings(model='gemini-embedding-001')
+        embed = HuggingFaceEmbeddings(model='BAAI/bge-small-en-v1.5', encode_kwargs={'normalize_embeddings': True},)
         vector = FAISS.from_documents(documents=text, embedding=embed)
         retriever = vector.as_retriever(search_kwargs={'k': 3})
         rag_tool = create_retriever_tool(retriever, description=query, name='pdf_rag')
