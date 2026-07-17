@@ -37,8 +37,8 @@ def current_agent():
 
     if 'rag_tool' in st.session_state and st.session_state.rag_tool:
         toolbox.append(st.session_state.rag_tool)
-    # llm = ChatGroq(model='llama-3.3-70b-versatile', temperature=0.5)
-    llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
+    llm = ChatGroq(model='llama-3.3-70b-versatile', temperature=0.5)
+    # llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
     agent = create_agent(
         model=llm,
         tools=toolbox,
