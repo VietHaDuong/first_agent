@@ -11,13 +11,19 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 @tool
-def search_web(query: str) -> str:
+def search_web(query: str, topic: str = "general", days: int=3) -> str:
     """Use this tool to search the internet for current events, real-time data, 
     and up-to-date news. Useful for any query involving dates after 2024 
     or verified facts. Input should be a targeted search query.
     
     Arg:
-        query: input from user to search for information (e.g. How old is Taylor Swift?)"""
+        query: input from user to search for information (e.g. How old is Taylor Swift?)
+        topic: either "general" or "news". Use "news" for current event, breaking news, recent developments, or anything time-sensitive
+            (e.g. "latest", "yesterday", "this week"). Use "general" for evergreen or factual lookups (definitions, how-tos, background).
+        days: Only applies when topic="news". Recency window in days —
+            how far back results may come from. Use 1-2 for very recent
+            events, up to 7 for the past week.
+        """
 
     print('running search web tool...')
     if 'TAVILY_API_KEY' in st.secrets:
@@ -26,7 +32,7 @@ def search_web(query: str) -> str:
         st.error('Tavily api is not in st secret')
         st.stop()
 
-    engine = TavilySearch(max_results = 3, include_answer = True)
+    engine = TavilySearch(max_results = 3, topic=topic, days=days if topic == 'news' else None, include_answer = False)
     try:
         answer = engine.invoke(query)
         return answer
