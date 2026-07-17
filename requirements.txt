@@ -2,6 +2,7 @@ langchain
 langchain-google-genai
 langchain-groq
 langchain-huggingface
+langchain-ollama
 langchain-core
 streamlit
 langchain-tavily
@@ -12,3 +13,5 @@ pypdf
 faiss-cpu
 requests
 pyyaml
+sentence-transformers
+torchvision

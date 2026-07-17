@@ -1,14 +1,14 @@
-
 import os
 import uuid
 import yaml
 import streamlit as st
 from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from langchain.agents import create_agent
 from langchain.agents.middleware import SummarizationMiddleware
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_core.runnables import RunnableConfig
-from tools import rag_pdf, search_web, get_weather
+from tools import  search_web, get_weather, rag_pdf
 
 os.environ["GROQ_API_KEY"] = st.secrets['GROQ_API_KEY']
 
@@ -37,13 +37,13 @@ def current_agent():
 
     if 'rag_tool' in st.session_state and st.session_state.rag_tool:
         toolbox.append(st.session_state.rag_tool)
-    llm = ChatGroq(model='llama-3.1-8b-instant', temperature=0.5)
-    # llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
+    # llm = ChatGroq(model='llama-3.3-70b-versatile', temperature=0.5)
+    llm = ChatOllama(model='qwen2.5:7b-instruct', temperature=0.7)
     agent = create_agent(
         model=llm,
         tools=toolbox,
         middleware=[SummarizationMiddleware(
-            model=llm, max_tokens_before_summary=2000, messages_to_keep=5
+            model=llm, trigger=('tokens', 2000), keep=('messages', 5),
         )],
         checkpointer=InMemorySaver(),
         system_prompt=sys_prompt
@@ -55,9 +55,8 @@ upload_file = st.file_uploader('Upload your pdf here', type='pdf', accept_multip
 
 if upload_file and st.button('Process PDF'):
     with st.spinner('Processing...'):
-        tool_desc = f'Use this tool to answer question about uploaded file: {upload_file.name}'
         try:
-            new_tool = rag_pdf(upload_file, query=tool_desc)
+            new_tool = rag_pdf(upload_file)
             st.session_state.rag_tool = new_tool
             st.success(f'{upload_file.name} uploaded successfully!')
         except Exception as e:
